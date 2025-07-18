@@ -41,6 +41,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm ci
+          npx update-browserslist-db@latest
 
       # Build the app
       - name: Build/Release Electron app
