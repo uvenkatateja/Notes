@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  #root {
+    @apply h-full bg-app-black;
+  }
+
+  html,
+  body {
+    @apply h-full;
+    @apply select-none;
+    @apply bg-app-black;
+    @apply font-mono antialiased text-white;
+    @apply overflow-hidden;
+  }
+
+  .drag-region {
+    -webkit-app-region: drag;
+    -webkit-user-select: none;
+    cursor: move;
+  }
+
+  .no-drag {
+    -webkit-app-region: no-drag;
+    cursor: default;
+  }
+
+  header {
+    @apply bg-app-gray-dark border-b border-app-gray-light;
+  }
+
+  button {
+    @apply hover:bg-app-gray transition-colors duration-200;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-app-gray-light rounded-md;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-app-gray-dark;
+  }
+}
+
+/* Editor specific styles */
+.editor-container {
+  @apply bg-app-gray-dark text-white p-4;
+}
+
+.note-preview {
+  @apply bg-app-gray hover:bg-app-gray-light border border-app-gray-light rounded-lg p-4 mb-2 transition-colors duration-200;
+}
