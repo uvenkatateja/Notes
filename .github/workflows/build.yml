@@ -1,20 +1,9 @@
-name: Build/Release
+name: Build and Release
 
 on:
   push:
-    branches:
-      - main
     tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - main
-
-permissions:
-  contents: write
-  packages: write
-  issues: write
-  pull-requests: write
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   release:
@@ -22,74 +11,35 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
-      fail-fast: false
+        os: [windows-latest]
+        # Add macos-latest and ubuntu-latest if you want to build for those platforms too
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: 'npm'
 
-      # Install required dependencies for Linux builds
-      - name: Install Linux dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf
-          sudo apt-get install -y rpm
-
-      # Fix permissions for Linux
-      - name: Fix app-builder permissions
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo chown root:root /
-
-      # Install dependencies with clean install
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
+        
+      - name: Build Electron app
+        run: npm run build:win
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build the app
-      - name: Build Electron App
-        run: npm run build
-
-      - name: Build Electron Builder
-        run: |
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            npm run build:win
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            npm run build:mac
-          else
-            npm run build:linux
-          fi
-        shell: bash
-
-      - name: Upload Windows Artifacts
-        if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: windows-builds
-          path: dist/*.exe
-          if-no-files-found: error
-
-      - name: Upload macOS Artifacts
-        if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-builds
-          path: dist/*.dmg
-          if-no-files-found: error
-
-      - name: Upload Linux Artifacts
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-builds
-          path: |
-            dist/*.AppImage
-            dist/*.deb
-          if-no-files-found: error 
+          files: |
+            build_output/*.exe
+            build_output/*.zip
+            build_output/*.dmg
+            build_output/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

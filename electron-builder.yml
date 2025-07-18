@@ -2,7 +2,7 @@ appId: com.notemark.app
 productName: NoteMark
 copyright: Copyright © 2024 NoteMark
 directories:
-  output: dist
+  output: build_output
   buildResources: resources
 files:
   - '!**/.vscode/*'
@@ -14,10 +14,13 @@ files:
 asarUnpack:
   - resources/**
 
+# Auto-update configuration
 publish:
   provider: github
   owner: uvenkatateja
   repo: Notes
+  private: false
+  releaseType: release
 
 win:
   executableName: notemark
@@ -31,6 +34,16 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  oneClick: true
+  allowToChangeInstallationDirectory: false
+  createStartMenuShortcut: true
+  deleteAppDataOnUninstall: true
+
+# Enable built-in auto-update handling
+updater:
+  allowPrerelease: false
+  allowDowngrade: false
+  checkUpdateIntervalInMinutes: 60
 
 mac:
   icon: resources/icon.png
@@ -57,3 +70,8 @@ linux:
   maintainer: notemark.com
   category: Utility
   icon: resources/icon.png
+
+# Handle symlink issues
+npmRebuild: false
+buildDependenciesFromSource: true
+asar: false

@@ -1,11 +1,63 @@
 import { createNote, deleteNote, getNotes, readNote, writeNote } from '@/lib'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { CreateNote, DeleteNote, GetNotes, ReadNote, WriteNote } from '@shared/types'
-import { BrowserWindow, app, ipcMain, shell } from 'electron'
+import { BrowserWindow, app, ipcMain, shell, autoUpdater, dialog } from 'electron'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 
 let mainWindow: BrowserWindow | null = null
+
+// Auto-updater configuration
+function setupAutoUpdater() {
+  if (is.dev) return // Don't check for updates in dev mode
+
+  const server = 'https://github.com/uvenkatateja/Notes'
+  const url = `${server}/releases/latest`
+
+  autoUpdater.setFeedURL({ url })
+
+  // Check for updates every hour
+  setInterval(() => {
+    autoUpdater.checkForUpdates()
+  }, 60 * 60 * 1000)
+
+  // Check for updates on startup
+  autoUpdater.checkForUpdates()
+
+  // Auto-updater events
+  autoUpdater.on('update-downloaded', (_event, releaseNotes, releaseName) => {
+    const dialogOpts = {
+      type: 'info',
+      buttons: ['Restart', 'Later'],
+      title: 'Application Update',
+      message: process.platform === 'win32' ? releaseNotes : releaseName,
+      detail: 'A new version has been downloaded. Restart the application to apply the updates.'
+    }
+
+    dialog.showMessageBox(dialogOpts).then((returnValue) => {
+      if (returnValue.response === 0) autoUpdater.quitAndInstall()
+    })
+  })
+
+  autoUpdater.on('error', (message) => {
+    console.error('There was a problem updating the application')
+    console.error(message)
+  })
+
+  // Optional: Send status to renderer
+  autoUpdater.on('checking-for-update', () => {
+    mainWindow?.webContents.send('update-status', 'Checking for update...')
+  })
+  autoUpdater.on('update-available', () => {
+    mainWindow?.webContents.send('update-status', 'Update available.')
+  })
+  autoUpdater.on('update-not-available', () => {
+    mainWindow?.webContents.send('update-status', 'Update not available.')
+  })
+  autoUpdater.on('download-progress', (progressObj) => {
+    mainWindow?.webContents.send('update-status', `Downloading... ${progressObj.percent}%`)
+  })
+}
 
 // Set up IPC handlers
 function setupIpcHandlers() {
@@ -50,6 +102,13 @@ function setupIpcHandlers() {
   ipcMain.handle('writeNote', (_, ...args: Parameters<WriteNote>) => writeNote(...args))
   ipcMain.handle('createNote', (_, ...args: Parameters<CreateNote>) => createNote(...args))
   ipcMain.handle('deleteNote', (_, ...args: Parameters<DeleteNote>) => deleteNote(...args))
+
+  // Update checker
+  ipcMain.handle('check-for-updates', () => {
+    if (!is.dev) {
+      autoUpdater.checkForUpdates()
+    }
+  })
 }
 
 function createWindow(): void {
@@ -115,6 +174,7 @@ app.whenReady().then(() => {
   // Set up IPC handlers before creating window
   setupIpcHandlers()
   createWindow()
+  setupAutoUpdater() // Initialize auto-updater
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
