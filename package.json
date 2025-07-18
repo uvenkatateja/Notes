@@ -2,6 +2,11 @@
   "name": "note-mark",
   "version": "1.0.0",
   "description": "A Markdown Note taking app built with Electron",
+  "author": "uvenkatateja",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uvenkatateja/NoteMark.git"
+  },
   "license": "MIT",
   "main": "./out/main/index.js",
   "scripts": {
@@ -12,11 +17,11 @@
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
-    "build": "npm run typecheck && electron-vite build",
+    "build": "electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:win": "npm run build && electron-builder --win --config",
-    "build:mac": "electron-vite build && electron-builder --mac --config",
-    "build:linux": "electron-vite build && electron-builder --linux --config"
+    "build:mac": "npm run build && electron-builder --mac --config",
+    "build:linux": "npm run build && electron-builder --linux --config"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
