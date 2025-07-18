@@ -14,7 +14,6 @@ files:
 asarUnpack:
   - resources/**
 
-# Auto-update configuration
 publish:
   provider: github
   owner: uvenkatateja
@@ -38,12 +37,6 @@ nsis:
   allowToChangeInstallationDirectory: false
   createStartMenuShortcut: true
   deleteAppDataOnUninstall: true
-
-# Enable built-in auto-update handling
-updater:
-  allowPrerelease: false
-  allowDowngrade: false
-  checkUpdateIntervalInMinutes: 60
 
 mac:
   icon: resources/icon.png
@@ -74,4 +67,4 @@ linux:
 # Handle symlink issues
 npmRebuild: false
 buildDependenciesFromSource: true
-asar: false
+asar: true
